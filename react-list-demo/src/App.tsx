@@ -1,27 +1,53 @@
-import { useState, useRef } from "react";
+import React, {
+  useMemo,
+  useRef,
+  useState,
+  ChangeEvent,
+  FormEvent,
+} from "react";
 
-function onSubmit(e) {
-  e.preventDefault();
-}
+const App: React.FC = () => {
+  const [items, setItems] = useState<string[]>([]);
+  const [query, setQuery] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
-const App = () => {
-  const [items, setItems] = useState([]);
-  // const [query, setQuery] = useState([]);
-  // const inputRef = useRef();
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      return item.toLowerCase().includes(query.toLowerCase());
+    });
+  }, [items, query]);
+
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (inputRef.current && inputRef.current.value !== "") {
+      setItems((prev) => {
+        return [...prev, inputRef.current!.value];
+      });
+
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+  };
 
   return (
     <>
       Search:
-      <input type="search" />
+      <input value={query} onChange={handleInputChange} type="search" />
       <br />
       <br />
       <form onSubmit={onSubmit}>
-        New Item: <input type="text" />
+        New Item: <input ref={inputRef} type="text" />
         <button type="submit">Add</button>
       </form>
-      <h2>Items:</h2>
-      {items.map((item) => (
-        <div>{item}</div>
+      <h3>Items:</h3>
+      {filteredItems.map((item, index) => (
+        <div key={index}>{item}</div>
       ))}
     </>
   );
